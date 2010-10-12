@@ -1,0 +1,7 @@
+Whistleblower
+=============
+
+A Rails plugin providing a generic alerting system via Amazon SimpleDB.
+
+
+Copyright (c) 2010 Chris Baker, released under the MIT license

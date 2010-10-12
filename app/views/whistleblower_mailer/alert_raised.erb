@@ -1,0 +1,8 @@
+<%= @alert_name %> failed <%= pluralize(@errors.count, 'validation') %>.<br/>
+Validations run at <%= @validation_time %>.<br/>
+Errors:
+<ul>
+	<% @errors.each_pair do |validator, validator_errors| %>
+		<li><%= validator %> => <%= validator_errors %></li>
+	<% end %>
+</ul>

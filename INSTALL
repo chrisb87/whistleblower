@@ -1,0 +1,3 @@
+=== Configuration
+
+Set your AWS access keys in config/initializers/whistleblower.rb 

@@ -49,7 +49,7 @@ module Whistleblower
     
     def self.db
       unless defined? @@db
-        @@db = RightAws::SdbInterface.new(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+        @@db = RightAws::SdbInterface.new(Whistleblower::Config.access_key_id, Whistleblower::Config.secred_access_key)
         [WHISTLEBLOWER_ALERTS_DOMAIN, WHISTLEBLOWER_ALERT_LOGS_DOMAIN].each do |domain|
           @@db.create_domain(domain)
         end

@@ -2,22 +2,24 @@ require 'right_aws'
 require 'uuidtools'
 
 module Whistleblower
+  ALERTS_DOMAIN = 'whistleblower_alerts'
+  ALERT_LOGS_DOMAIN = 'whistleblower_alert_logs'
   
-  DOMAIN_PREFIX = 'whistleblower'
-  WHISTLEBLOWER_ALERTS_DOMAIN = DOMAIN_PREFIX + '_alerts'
-  WHISTLEBLOWER_ALERT_LOGS_DOMAIN = DOMAIN_PREFIX + '_alert_logs'
+  def self.db
+    unless defined? @@db
+      debugger
+      @@db = RightAws::SdbInterface.new(Whistleblower::Config.access_key_id, Whistleblower::Config.secret_access_key)
+      [ALERTS_DOMAIN, ALERT_LOGS_DOMAIN].each do |domain|
+        @@db.create_domain(domain)
+      end
+    end
+    @@db
+  end
   
   class Alert
-    
-    ACTIVE = true
-    OFFLINE = false
 
     def self.validate
-      
-      return unless ACTIVE
-      
       errors = {}
-      
       validation_time = DateTime.now
       
       methods.select{|method| method =~ /validate_.+/}.each do |method|
@@ -28,15 +30,15 @@ module Whistleblower
       if errors.blank?
         if raised?
           last_uuid = self.uuid
-          resolve_alert(validation_time) unless OFFLINE
+          resolve_alert(validation_time)
           on_resolved(last_uuid, validation_time)
         end
       else
         if raised?
-          sustain_alert(errors, validation_time) unless OFFLINE
+          sustain_alert(errors, validation_time)
           on_sustained(errors, validation_time)
         else
-          raise_alert(errors, validation_time) unless OFFLINE
+          raise_alert(errors, validation_time)
           while self.uuid.blank?
              sleep(0.1)
            end
@@ -45,16 +47,6 @@ module Whistleblower
       end
       
       errors.blank? ? true : false
-    end
-    
-    def self.db
-      unless defined? @@db
-        @@db = RightAws::SdbInterface.new(Whistleblower::Config.access_key_id, Whistleblower::Config.secred_access_key)
-        [WHISTLEBLOWER_ALERTS_DOMAIN, WHISTLEBLOWER_ALERT_LOGS_DOMAIN].each do |domain|
-          @@db.create_domain(domain)
-        end
-      end
-      @@db
     end
     
     def self.alert_name
@@ -66,24 +58,21 @@ module Whistleblower
     end
     
     def self.raised?
-      attributes = db.get_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name)[:attributes]
+      attributes = Whistleblower.db.get_attributes(ALERTS_DOMAIN, alert_name)[:attributes]
       (attributes.blank? or attributes['raised'].first == 'false') ? false : true
     end
     
     def self.last_raised_at
-      # return nil if not self.raised?
-      # attributes = db.get_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name)[:attributes]
-      # (attributes.blank? or attributes['raised_at'].first.blank?) ? nil : attributes['raised_at'].first
-      db.get_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name)[:attributes]['last_raised_at'].first
+      Whistleblower.db.get_attributes(ALERTS_DOMAIN, alert_name)[:attributes]['last_raised_at'].first
     end
     
     def self.last_sustained_at
-      db.get_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name)[:attributes]['last_sustained_at'].first
+      Whistleblower.db.get_attributes(ALERTS_DOMAIN, alert_name)[:attributes]['last_sustained_at'].first
     end
     
     def self.uuid
       return nil if not self.raised?
-      attributes = db.get_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name)[:attributes]
+      attributes = Whistleblower.db.get_attributes(ALERTS_DOMAIN, alert_name)[:attributes]
       (attributes.blank? or attributes['uuid'].first.blank?) ? nil : attributes['uuid'].first
     end
     
@@ -93,31 +82,31 @@ module Whistleblower
         :last_raised_at => validation_time, 
         :details => create_error_report(errors),
         :uuid => UUIDTools::UUID.random_create.to_s}
-      db.put_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name, attributes, replace=true)
+      Whistleblower.db.put_attributes(ALERTS_DOMAIN, alert_name, attributes, replace=true)
     end
     
     def self.on_raised(errors, validation_time); end
     
     def self.sustain_alert(errors, validation_time)
       raise 'Sustaining an alert that is not raised' if not self.raised?
-      db.put_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name, {:details => create_error_report(errors)}, replace=false)
-      db.put_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name, {:last_sustained_at => validation_time}, replace=true)
+      Whistleblower.db.put_attributes(ALERTS_DOMAIN, alert_name, {:details => create_error_report(errors)}, replace=false)
+      Whistleblower.db.put_attributes(ALERTS_DOMAIN, alert_name, {:last_sustained_at => validation_time}, replace=true)
     end
     
     def self.on_sustained(errors, validation_time); end
     
     def self.resolve_alert(validation_time)
-      attributes = db.get_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name)[:attributes]
+      attributes = Whistleblower.db.get_attributes(ALERTS_DOMAIN, alert_name)[:attributes]
       details = attributes['details']
       uuid = attributes['uuid']
       
-      db.put_attributes(WHISTLEBLOWER_ALERT_LOGS_DOMAIN, uuid, 
+      Whistleblower.db.put_attributes(ALERT_LOGS_DOMAIN, uuid, 
         {:alert_name => alert_name,
           :raised_at => last_raised_at,
           :resolved_at => validation_time,
           :details => details}, replace=false)
           
-      db.put_attributes(WHISTLEBLOWER_ALERTS_DOMAIN, alert_name, 
+      Whistleblower.db.put_attributes(ALERTS_DOMAIN, alert_name, 
         {:raised => false, 
           :uuid => nil, 
           :details => nil}, replace=true)

@@ -1,0 +1,31 @@
+<style>
+table#whistleblower_logs, table#whistleblower_logs th, table#whistleblower_logs td {
+  border: 1px solid black;
+}
+</style>
+
+<h1>Whistleblower logs for alert <%= @alert_name %></h1>
+
+<table id="whistleblower_logs">
+	<thead>
+		<tr>
+			<th>UUID</th>
+			<th>Raised at</th>
+			<th>Resolved at</th>
+			<th>Details</th>
+		</tr>
+	</thead>
+
+	<tbody>
+	<% @logs.each do |log| %>
+	  <tr>
+	    <td><%= log['uuid'] %></td>
+			<td><%= log['raised_at'].first %></td>
+			<td><%= log['resolved_at'].first %></td>
+			<td><%= log['details'] %></td>
+	  </tr>
+	<% end %>
+	</tbody>
+</table>
+
+<br />

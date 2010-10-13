@@ -1,0 +1,52 @@
+<style>
+table#whistleblower_alerts, table#whistleblower_alerts th, table#whistleblower_alerts td {
+  border: 1px solid black;
+}
+
+table#whistleblower_alerts thead th {
+	background: none;
+	color: black;
+}
+
+table#whistleblower_alerts tr.alert_raised td{
+	background: red;
+	color: black;
+}
+
+table#whistleblower_alerts tr.alert_not_raised td{
+	background: green;
+	color: black;
+}
+</style>
+
+<h1>Whistleblower alerts</h1>
+
+<table id="whistleblower_alerts">
+	<thead>
+		<tr>
+			<th>Alert name</th>
+			<th>UUID</th>
+			<th>Raised?</th>
+			<th>Last raised at</th>
+			<th>Last sustained at</th>
+			<th>Details</th>
+			<th>Logs</th>
+		</tr>
+	</thead>
+
+	<tbody>
+	<% @alerts.each_pair do |alert_name, attributes| %>
+	  <tr class="<%= attributes['raised'].first == 'true' ? 'alert_raised' : 'alert_not_raised' %>">
+	    <td><%= alert_name %></td>
+			<td><%= attributes['uuid'] %>
+			<td><%= attributes['raised'] %></td>
+			<td><%= attributes['last_raised_at'] %></td>
+			<td><%= attributes['last_sustained_at'] %></td>
+			<td><%= attributes['details'] %></td>
+			<td><%= link_to "Logs", :action => "logs", :id => alert_name %></td>
+	  </tr>
+	<% end %>
+	</tbody>
+</table>
+
+<br />

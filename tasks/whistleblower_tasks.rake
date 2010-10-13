@@ -9,15 +9,15 @@ namespace :whistleblower do
   
   desc 'Clears all current alerts'
   task :clear_alerts => :environment do |t, args|
-    Whistleblower::Alert.db.query(Whistleblower::WHISTLEBLOWER_ALERTS_DOMAIN, '')[:items].each do |alert_name|
-      Whistleblower::Alert.db.delete_attributes Whistleblower::WHISTLEBLOWER_ALERTS_DOMAIN, alert_name
+    Whistleblower.db.query(Whistleblower::ALERTS_DOMAIN, '')[:items].each do |alert_name|
+      Whistleblower.db.delete_attributes Whistleblower::ALERTS_DOMAIN, alert_name
     end
   end
   
   desc 'Clears all alert logs'
   task :clear_logs => :environment do |t, args|
-    Whistleblower::Alert.db.query(Whistleblower::WHISTLEBLOWER_ALERT_LOGS_DOMAIN, '')[:items].each do |log_name|
-      Whistleblower::Alert.db.delete_attributes Whistleblower::WHISTLEBLOWER_ALERT_LOGS_DOMAIN, log_name
+    Whistleblower.db.query(Whistleblower::ALERT_LOGS_DOMAIN, '')[:items].each do |log_name|
+      Whistleblower.db.delete_attributes Whistleblower::ALERT_LOGS_DOMAIN, log_name
     end
   end
   

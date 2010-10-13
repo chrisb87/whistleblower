@@ -1,0 +1,10 @@
+Description:
+    Generates a front end for accessing whistleblower alerts and logs.
+
+Example:
+    ./script/generate whistleblower_frontend Whistleblower
+
+    This will create:
+        app/controllers/whistleblower_controller.rb
+				app/views/whistleblower/index.html.erb
+				app/views/whistleblower/logs.html.erb

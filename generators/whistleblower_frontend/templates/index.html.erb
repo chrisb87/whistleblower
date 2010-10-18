@@ -42,7 +42,11 @@ table#whistleblower_alerts tr.alert_not_raised td{
 			<td><%= attributes['raised'] %></td>
 			<td><%= attributes['last_raised_at'] %></td>
 			<td><%= attributes['last_sustained_at'] %></td>
-			<td><%= attributes['details'] %></td>
+			<td>
+				<% attributes['details'].each do |detail| %>
+					<p><%= detail %></p>
+				<% end %>
+			</td>
 			<td><%= link_to "Logs", :action => "logs", :id => alert_name %></td>
 	  </tr>
 	<% end %>

@@ -21,7 +21,7 @@ class <%= class_name %>Controller < ApplicationController
       log_attributes['uuid'] = log_uuid
       @logs << log_attributes
     end
-    @logs = @logs.sort_by{|log| log['raised_at'].first}
+    @logs = @logs.sort_by{|log| log['raised_at'].first}.reverse
     
     debugger
     

@@ -22,7 +22,11 @@ table#whistleblower_logs, table#whistleblower_logs th, table#whistleblower_logs 
 	    <td><%= log['uuid'] %></td>
 			<td><%= log['raised_at'].first %></td>
 			<td><%= log['resolved_at'].first %></td>
-			<td><%= log['details'] %></td>
+			<td>
+				<% log['details'].each do |detail| %>
+					<p><%= detail %></p>
+				<% end %>
+			</td>
 	  </tr>
 	<% end %>
 	</tbody>

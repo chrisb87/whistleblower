@@ -2,8 +2,18 @@ namespace :whistleblower do
 
   desc 'Validates a list of alerts supplied through ALERTS argument'
   task :validate => :environment do |t, args|
-    raise Exception.new("Requires a list of alert names as ALERTS argument") unless ENV['ALERTS']
-    alert_names = ENV['ALERTS'].split(',').map(&:strip)
+    if ENV['CRON'] and not Rails.env.production?
+      raise Exception.new("Abort: run via CRON in #{Rails.env} environment")
+    end
+    
+    Dir["lib/alerts/*.rb"].each {|file| require file}
+    
+    if ENV['ALERTS']
+      alert_names = ENV['ALERTS'].split(',').map(&:strip)
+    else
+      alert_names = Whistleblower::Alert.subclasses
+    end
+    
     alert_names.each {|alert_name| validate_alert alert_name}
   end
   
@@ -25,11 +35,7 @@ end
 
 def validate_alert(alert_name)
   puts "Validating #{alert_name}..."
-  begin
-    alert = alert_name.to_s.constantize
-    passed = alert.validate
-    puts "\t" + (passed ? 'passed' : 'failed!')
-  rescue NameError => e
-    puts "\tfailed! Could not find alert with this name"
-  end
+  alert = Object::const_get(alert_name.to_s)
+  passed = alert.validate
+  puts "\t" + (passed ? 'passed' : 'failed!')
 end

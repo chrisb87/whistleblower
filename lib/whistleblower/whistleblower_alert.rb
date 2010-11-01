@@ -54,7 +54,7 @@ module Whistleblower
     end
     
     def self.create_error_report(errors)
-      errors.map{|k,v| "#{k} failed at #{DateTime.now.to_s}. Returned: #{v}"}.join('. ')
+      errors.map{|k,v| "#{k} failed at #{DateTime.now.to_s}. Returned: #{v}"}.join('. ')[0..1023]
     end
     
     def self.raised?
@@ -98,9 +98,9 @@ module Whistleblower
     def self.resolve_alert(validation_time)
       attributes = Whistleblower.db.get_attributes(ALERTS_DOMAIN, alert_name)[:attributes]
       details = attributes['details']
-      uuid = attributes['uuid']
+      log_uuid = attributes['uuid']
       
-      Whistleblower.db.put_attributes(ALERT_LOGS_DOMAIN, uuid, 
+      Whistleblower.db.put_attributes(ALERT_LOGS_DOMAIN, log_uuid, 
         {:alert_name => alert_name,
           :raised_at => last_raised_at,
           :resolved_at => validation_time,

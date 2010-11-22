@@ -3,18 +3,25 @@ namespace :whistleblower do
   desc 'Validates a list of alerts supplied through ALERTS argument'
   task :validate => :environment do |t, args|
     if ENV['CRON'] and not Rails.env.production?
-      raise Exception.new("Abort: run via CRON in #{Rails.env} environment")
+      raise Exception.new("Abort: must be in production environment when passing the CRON flag. Rails environment is currently #{Rails.env}")
     end
     
     Dir["lib/alerts/*.rb"].each {|file| require file}
     
     if ENV['ALERTS']
-      alert_names = ENV['ALERTS'].split(',').map(&:strip)
+      target_alerts = ENV['ALERTS'].split(',').map(&:strip)
     else
-      alert_names = Whistleblower::Alert.subclasses
+      target_alerts = Whistleblower::Alert.subclasses
     end
     
-    alert_names.each {|alert_name| validate_alert alert_name}
+    target_alerts = target_alerts.map{|alert_name| Object::const_get(alert_name)}
+    
+    target_alerts.each do |target_alert|
+      puts "Validating #{target_alert.to_s}..."
+      passed = target_alert.validate
+      puts "\t" + (passed ? 'passed' : 'failed!')
+    end
+    
   end
   
   desc 'Clears all current alerts'
@@ -31,11 +38,4 @@ namespace :whistleblower do
     end
   end
   
-end
-
-def validate_alert(alert_name)
-  puts "Validating #{alert_name}..."
-  alert = Object::const_get(alert_name.to_s)
-  passed = alert.validate
-  puts "\t" + (passed ? 'passed' : 'failed!')
 end

@@ -50,7 +50,7 @@ module Whistleblower
     end
     
     def self.alert_name
-      self.to_s
+      Rails.env.production? ? self.to_s : self.to_s + '_' + Rails.env
     end
     
     def self.create_error_report(errors)
@@ -111,7 +111,7 @@ module Whistleblower
           :uuid => nil, 
           :details => nil}, replace=true)
       
-      return uuid, attributes
+      return log_uuid, attributes
     end
     
     def self.on_resolved(uuid, validation_time); end
